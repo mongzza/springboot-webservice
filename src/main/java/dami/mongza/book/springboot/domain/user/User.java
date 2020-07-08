@@ -25,7 +25,7 @@ public class User extends BaseTimeEntity {
 	@Column
 	private String picture;
 
-	@Enumerated(EnumType.STRING)
+	@Enumerated(EnumType.STRING) // DB에 문자열로 저장하기 위해 타입 지정
 	@Column(nullable = false)
 	private Role role;
 

@@ -23,13 +23,22 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 	private final UserRepository userRepository;
 	private final HttpSession httpSession;
 
+	/**
+	 * 사용자 로그인
+	 * @param userRequest
+	 * @return
+	 * @throws OAuth2AuthenticationException
+	 */
 	@Override
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 		OAuth2UserService delegate = new DefaultOAuth2UserService();
 		OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
+		// 현재 로그인 진행 중인 서비스 구분(구글인지 네이버인지)
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
+		// OAuth2 로그인 진행 시 키가 되는 필드값(PK)
 		String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+		// OAuth2User 클래스를 통해 가져온 사용자의 attribute 담는 객체
 		OAuthAttributes attributes = OAuthAttributes.of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
 
 		User user = saveOrUpdate(attributes);
@@ -41,6 +50,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 				attributes.getNameAttributeKey());
 	}
 
+	/**
+	 * 소셜 서비스에서 사용자 정보 가져온 후 추가로 진행할 기능
+	 * 사용자 로그인 시, 없으면 추가 있으면 업데이트
+	 * @param attributes
+	 * @return
+	 */
 	private User saveOrUpdate(OAuthAttributes attributes) {
 		User user = userRepository.findByEmail(attributes.getEmail())
 				.map(entity -> entity.update(attributes.getName(), attributes.getPicture()))
